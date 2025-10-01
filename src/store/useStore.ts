@@ -1,11 +1,10 @@
-// store/useStore.ts
 import { create } from 'zustand';
 
 // 1. Define the core type for a product
 export type Product = {
   id: number;
   name: string;
-  category: 'panels' | 'batteries' | 'inverters'; // Using a union type for better category checking
+  category: 'panels' | 'batteries' | 'inverters' | 'generators' | 'streetlights' | 'charge-controllers'; // Added new categories
   description: string;
   price: number;
   imageUrl: string;
@@ -40,7 +39,7 @@ const initialProducts: Product[] = [
     category: 'panels',
     description: 'A durable and highly efficient solar panel with excellent low-light performance.',
     price: 250,
-    imageUrl: 'https://placehold.co/400x300/a3e635/000000.png?text=Solar+Panel',
+    imageUrl: '/sp1.jpg',
   },
   {
     id: 2,
@@ -56,7 +55,7 @@ const initialProducts: Product[] = [
     category: 'inverters',
     description: 'Converts DC power from panels to AC power for household use with high efficiency.',
     price: 550,
-    imageUrl: 'https://placehold.co/400x300/f87171/000000.png?text=Inverter',
+    imageUrl: '/iv1.jpg',
   },
   {
     id: 4,
@@ -72,7 +71,7 @@ const initialProducts: Product[] = [
     category: 'panels',
     description: 'An economical option for solar power generation with good performance.',
     price: 180,
-    imageUrl: 'https://placehold.co/400x300/a3e635/000000.png?text=Poly+Panel',
+    imageUrl: '/sp2.jpg',
   },
   {
     id: 6,
@@ -80,10 +79,34 @@ const initialProducts: Product[] = [
     category: 'inverters',
     description: 'Combines a charge controller and an inverter for simplified system setup.',
     price: 900,
-    imageUrl: 'https://placehold.co/400x300/f87171/000000.png?text=Hybrid+Inverter',
+    imageUrl: '/iv2.jpg',
+  },
+  // --- New Products ---
+  {
+    id: 7,
+    name: 'Portable Solar Generator',
+    category: 'generators',
+    description: 'Portable solar generator for backup power.',
+    price: 120000,
+    imageUrl: '/sg1.jpg',
+  },
+  {
+    id: 8,
+    name: 'Solar Streetlight',
+    category: 'streetlights',
+    description: 'Solar-powered streetlight for outdoor lighting.',
+    price: 35000,
+    imageUrl: '/sl1.jpg',
+  },
+  {
+    id: 9,
+    name: 'Solar Charge Controller',
+    category: 'charge-controllers',
+    description: 'Efficient charge controller for solar systems.',
+    price: 18000,
+    imageUrl: '/cc1.jpg',
   },
 ];
-
 
 const useStore = create<StoreState>((set) => ({
   // State
@@ -137,4 +160,4 @@ const useStore = create<StoreState>((set) => ({
   setSelectedCategory: (category: StoreState['selectedCategory']) => set({ selectedCategory: category }),
 }));
 
-export default useStore;
+export default useStore; 
