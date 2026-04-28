@@ -5,6 +5,7 @@ import React, { useEffect, useRef, useState } from 'react'
 import type { StoreState } from '@/store/useStore'
 import useStore from '@/store/useStore'
 import Image from 'next/image'
+import { useRouter } from 'next/navigation'
 import AdminPage from '@/components/AdminPage'
 import { Menu, ShoppingCart, Sun, Moon } from 'lucide-react'
 
@@ -18,21 +19,29 @@ type PageKey =
   | 'charge-controllers'
 
 export default function Page(): React.ReactElement {
+  // Router
+  const router = useRouter()
+  
   // Router-like local state
   const [currentPage, setCurrentPage] = useState<PageKey>('home')
 
-  // UI state
-  const [isDark, setIsDark] = useState<boolean>(() => {
-    try {
-      const v = localStorage.getItem('mf-solar-dark-mode')
-      return v === null ? true : v === 'true'
-    } catch {
-      return true
-    }
-  })
+  // UI state - initialize to true for SSR, then sync with localStorage on mount
+  const [isDark, setIsDark] = useState<boolean>(true)
   const [isMoreOpen, setIsMoreOpen] = useState(false)
   const moreRef = useRef<HTMLDivElement | null>(null)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+
+  // Sync with localStorage on mount (client-side only)
+  useEffect(() => {
+    try {
+      const v = localStorage.getItem('mf-solar-dark-mode')
+      if (v !== null) {
+        setIsDark(v === 'true')
+      }
+    } catch {
+      // Keep default
+    }
+  }, [])
 
   // Zustand store (unchanged)
   const {
@@ -104,7 +113,7 @@ export default function Page(): React.ReactElement {
             {items.map((p) => (
               <article
                 key={p.id}
-                className={`${isDark ? 'bg-gray-900 border-gray-800 text-white' : 'bg-white border-gray-200 text-gray-900'} p-4 rounded-xl shadow-xl border flex flex-col items-center text-center w-full max-w-sm`}
+                className={`${isDark ? 'bg-gray-900 border-gray-800 text-white' : 'bg-yellow-50 border-gray-300 text-gray-900 shadow-lg'} p-4 rounded-xl shadow-xl border flex flex-col items-center text-center w-full max-w-sm`}
               >
                 <div className="w-full flex items-center justify-center bg-gray-100 dark:bg-gray-800 rounded-md mb-2" style={{ minHeight: 180, maxHeight: 180 }}>
                   <Image
@@ -116,8 +125,8 @@ export default function Page(): React.ReactElement {
                   />
                 </div>
                 <h3 className="text-xl font-semibold">{p.name}</h3>
-                <p className="text-gray-400 mt-2">{p.description}</p>
-                <div className="mt-4 text-lg font-bold text-green-400">{p.price}</div>
+                <p className={`${isDark ? 'text-gray-400' : 'text-gray-600'} mt-2`}>{p.description}</p>
+                <div className={`mt-4 text-lg font-bold ${isDark ? 'text-green-400' : 'text-green-600'}`}>{p.price}</div>
               </article>
             ))}
           </div>
@@ -141,16 +150,16 @@ export default function Page(): React.ReactElement {
           }}
         />
         <div className="max-w-4xl space-y-4 md:space-y-6 z-10">
-          <h1 className={`${isDark ? 'text-white' : 'text-gray-900'} text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight`}>
+          <h1 className={`${isDark ? 'text-white' : 'text-gray-900'} text-4xl sm:text-5xl md:text-6xl font-heading font-bold tracking-tight`}>
             Powering Your Future with Solar Solutions
           </h1>
-          <p className={`${isDark ? 'text-white/90' : 'text-gray-800/90'} text-lg sm:text-xl md:text-2xl`}>
+          <p className={`${isDark ? 'text-white/90' : 'text-gray-800/90'} text-lg sm:text-xl md:text-2xl font-body`}>
             Discover premium solar panels, batteries, inverters and accessories for a more sustainable tomorrow.
           </p>
           <div className="flex items-center justify-center gap-4 mt-4">
             <button
               onClick={goToAllProducts}
-              className="px-6 py-3 text-lg font-semibold rounded-full shadow-lg transition-colors bg-yellow-300 text-gray-900 hover:bg-yellow-400 focus:outline-none focus:ring-4 focus:ring-yellow-300/50"
+              className="px-6 py-3 text-lg font-semibold rounded-md shadow-lg transition-colors bg-yellow-300 text-gray-900 hover:bg-yellow-400 focus:outline-none focus:ring-4 focus:ring-yellow-300/50"
             >
               Explore Products
             </button>
@@ -161,28 +170,38 @@ export default function Page(): React.ReactElement {
       {/* Featured */}
       <section className={`py-12 md:py-20 px-4 md:px-8 ${isDark ? 'bg-gray-950' : 'bg-white'}`}>
         <div className="container mx-auto">
-          <h2 className={`${isDark ? 'text-white' : 'text-gray-900'} text-3xl md:text-4xl font-bold text-center mb-10`}>Featured Products</h2>
+          <h2 className={`${isDark ? 'text-white' : 'text-gray-900'} text-3xl md:text-4xl font-heading font-bold text-center mb-10`}>Featured Products</h2>
 
           {/* center grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 justify-center justify-items-center">
             {products.slice(0, 3).map((product) => (
               <article
                 key={product.id}
-                className={`${isDark ? 'bg-gray-900 border-gray-800 text-white' : 'bg-white border-gray-200 text-gray-900'} p-4 rounded-xl shadow-xl border flex flex-col items-center text-center w-full max-w-sm`}
+                className={`${isDark ? 'bg-gray-900 border-gray-800 text-white' : 'bg-yellow-50 border-gray-300 text-gray-900 shadow-md'} p-5 rounded-xl shadow-xl border flex flex-col w-full max-w-sm cursor-pointer hover:shadow-2xl hover:scale-[1.02] transition-all duration-300`}
+                onClick={() => router.push(`/product/${product.id}`)}
               >
-                <div className="w-full flex items-center justify-center bg-gray-100 dark:bg-gray-800 rounded-md mb-2" style={{ minHeight: 210, maxHeight: 210 }}>
+                <div className="w-full overflow-hidden rounded-lg mb-4 bg-gray-100 dark:bg-gray-800" style={{ height: 220 }}>
                   <Image
                     src={product.imageUrl}
                     alt={product.name}
                     width={380}
-                    height={210}
-                    className="object-contain rounded-md w-full h-full"
+                    height={220}
+                    className="object-cover w-full h-full hover:scale-110 transition-transform duration-300"
                   />
                 </div>
-                <h3 className="text-xl font-semibold">{product.name}</h3>
-                <p className="text-sm mt-2">{product.description}</p>
-                <div className="mt-4 text-2xl font-bold text-green-400">${product.price.toFixed(2)}</div>
-                <button onClick={() => addToCart(product)} className="mt-4 w-full py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-all">
+                <h3 className="text-lg font-heading font-bold mb-2 line-clamp-2">{product.name}</h3>
+                <p className={`text-sm font-body mb-4 line-clamp-2 flex-grow ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{product.description}</p>
+                <div className="flex items-center justify-between mb-4">
+                  <div className={`text-2xl font-bold ${isDark ? 'text-green-400' : 'text-green-600'}`}>${product.price.toFixed(2)}</div>
+                  <span className="text-xs px-2 py-1 bg-yellow-400 text-gray-900 rounded-md font-semibold">In Stock</span>
+                </div>
+                <button 
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    addToCart(product)
+                  }} 
+                  className="w-full py-2.5 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 font-semibold transition-colors"
+                >
                   Add to Cart
                 </button>
               </article>
@@ -196,7 +215,7 @@ export default function Page(): React.ReactElement {
   const ProductsPage = () => (
     <section className={`py-12 md:py-20 px-4 md:px-8 ${isDark ? 'bg-gray-950' : 'bg-gray-50'} min-h-screen`}>
       <div className="container mx-auto">
-        <h2 className={`${isDark ? 'text-white' : 'text-gray-900'} text-3xl md:text-4xl font-bold text-center mb-8`}>Our Products</h2>
+        <h2 className={`${isDark ? 'text-white' : 'text-gray-900'} text-3xl md:text-4xl font-heading font-bold text-center mb-8`}>Our Products</h2>
 
         {/* Category filter */}
         <div className="flex flex-wrap justify-center gap-3 mb-10">
@@ -204,7 +223,7 @@ export default function Page(): React.ReactElement {
             <button
               key={cat}
               onClick={() => setSelectedCategory(cat)}
-              className={`px-4 py-2 rounded-full transition-all font-medium capitalize ${
+              className={`px-4 py-2 rounded-md transition-all font-medium capitalize ${
                 selectedCategory === cat
                   ? 'bg-yellow-400 text-gray-900 shadow-md'
                   : isDark
@@ -223,27 +242,37 @@ export default function Page(): React.ReactElement {
             filteredProducts.map((product) => (
               <article
                 key={product.id}
-                className={`${isDark ? 'bg-gray-900 border-gray-800 text-white' : 'bg-white border-gray-200 text-gray-900'} p-4 rounded-xl shadow-lg border flex flex-col items-center text-center w-full max-w-sm`}
+                className={`${isDark ? 'bg-gray-900 border-gray-800 text-white' : 'bg-yellow-50 border-gray-300 text-gray-900 shadow-md'} p-5 rounded-xl shadow-lg border flex flex-col w-full max-w-sm cursor-pointer hover:shadow-2xl hover:scale-[1.02] transition-all duration-300`}
+                onClick={() => router.push(`/product/${product.id}`)}
               >
-                <div className="w-full flex items-center justify-center bg-gray-100 dark:bg-gray-800 rounded-md mb-2" style={{ minHeight: 210, maxHeight: 210 }}>
+                <div className="w-full overflow-hidden rounded-lg mb-4 bg-gray-100 dark:bg-gray-800" style={{ height: 220 }}>
                   <Image
                     src={product.imageUrl}
                     alt={product.name}
                     width={380}
-                    height={210}
-                    className="object-contain rounded-md w-full h-full"
+                    height={220}
+                    className="object-cover w-full h-full hover:scale-110 transition-transform duration-300"
                   />
                 </div>
-                <h3 className="text-xl font-semibold">{product.name}</h3>
-                <p className="text-sm mt-2">{product.description}</p>
-                <div className="mt-4 text-2xl font-bold text-green-400">${product.price.toFixed(2)}</div>
-                <button onClick={() => addToCart(product)} className="mt-4 w-full py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700">
+                <h3 className="text-lg font-heading font-bold mb-2 line-clamp-2">{product.name}</h3>
+                <p className={`text-sm font-body mb-4 line-clamp-2 flex-grow ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{product.description}</p>
+                <div className="flex items-center justify-between mb-4">
+                  <div className={`text-2xl font-bold ${isDark ? 'text-green-400' : 'text-green-600'}`}>${product.price.toFixed(2)}</div>
+                  <span className="text-xs px-2 py-1 bg-yellow-400 text-gray-900 rounded-md font-semibold">In Stock</span>
+                </div>
+                <button 
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    addToCart(product)
+                  }} 
+                  className="w-full py-2.5 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 font-semibold transition-colors"
+                >
                   Add to Cart
                 </button>
               </article>
             ))
           ) : (
-            <p className={`${isDark ? 'text-gray-400' : 'text-gray-600'} col-span-full text-center`}>No products found in this category.</p>
+            <p className={`${isDark ? 'text-gray-400' : 'text-gray-600'} col-span-full text-center font-body`}>No products found in this category.</p>
           )}
         </div>
       </div>
@@ -253,7 +282,7 @@ export default function Page(): React.ReactElement {
   const CartPage = () => (
     <section className={`py-12 md:py-20 px-4 md:px-8 ${isDark ? 'bg-gray-950' : 'bg-gray-50'} min-h-screen`}>
       <div className="container mx-auto max-w-3xl">
-        <h2 className={`${isDark ? 'text-white' : 'text-gray-900'} text-3xl md:text-4xl font-bold text-center mb-8`}>Your Shopping Cart</h2>
+        <h2 className={`${isDark ? 'text-white' : 'text-gray-900'} text-3xl md:text-4xl font-heading font-bold text-center mb-8`}>Your Shopping Cart</h2>
 
         {cartItems.length === 0 ? (
           <div className={`${isDark ? 'border-gray-700 text-gray-400' : 'border-gray-200 text-gray-700'} text-center p-8 border rounded-xl`}>
@@ -263,7 +292,7 @@ export default function Page(): React.ReactElement {
                 setSelectedCategory('all')
                 setCurrentPage('products')
               }}
-              className="mt-6 px-6 py-3 text-lg font-semibold text-gray-900 bg-yellow-300 rounded-full shadow-lg hover:bg-yellow-400"
+              className="mt-6 px-6 py-3 text-lg font-semibold text-gray-900 bg-yellow-300 rounded-md shadow-lg hover:bg-yellow-400"
             >
               Go to Products
             </button>
@@ -273,7 +302,7 @@ export default function Page(): React.ReactElement {
             {cartItems.map((item) => (
               <div
                 key={item.id}
-                className={`${isDark ? 'bg-gray-900 border-gray-800 text-white' : 'bg-white border-gray-200 text-gray-900'} flex items-center space-x-4 p-4 rounded-xl border shadow-md w-full`}
+                className={`${isDark ? 'bg-gray-900 border-gray-800 text-white' : 'bg-yellow-50 border-gray-300 text-gray-900 shadow-md'} flex items-center space-x-4 p-4 rounded-xl border shadow-md w-full`}
               >
                 <div className="w-24 h-24 flex items-center justify-center bg-gray-100 dark:bg-gray-800 rounded-md mb-2">
                   <Image
@@ -285,9 +314,9 @@ export default function Page(): React.ReactElement {
                   />
                 </div>
                 <div className="flex-grow">
-                  <h3 className="text-lg font-semibold">{item.name}</h3>
-                  <p className="text-sm">Quantity: {item.quantity}</p>
-                  <p className="text-lg font-bold text-green-400">${item.price.toFixed(2)}</p>
+                  <h3 className="text-lg font-heading font-semibold">{item.name}</h3>
+                  <p className={`text-sm font-body ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Quantity: {item.quantity}</p>
+                  <p className={`text-lg font-bold ${isDark ? 'text-green-400' : 'text-green-600'}`}>${item.price.toFixed(2)}</p>
                 </div>
                 <button onClick={() => removeFromCart(item.id)} className="text-red-500 hover:text-red-400">
                   Remove
@@ -295,9 +324,9 @@ export default function Page(): React.ReactElement {
               </div>
             ))}
 
-            <div className={`${isDark ? 'bg-gray-900 border-gray-800' : 'bg-white border-gray-200'} flex flex-col md:flex-row justify-between items-center p-6 rounded-xl border mt-8`}>
+            <div className={`${isDark ? 'bg-gray-900 border-gray-800' : 'bg-yellow-50 border-gray-300 shadow-md'} flex flex-col md:flex-row justify-between items-center p-6 rounded-xl border mt-8`}>
               <span className={`${isDark ? 'text-white' : 'text-gray-900'} text-2xl font-bold`}>Total: ${calculateTotal()}</span>
-              <button onClick={handleCheckout} className="px-8 py-3 bg-emerald-600 text-white rounded-full shadow-lg hover:bg-emerald-700">
+              <button onClick={handleCheckout} className="px-8 py-3 bg-emerald-600 text-white rounded-md shadow-lg hover:bg-emerald-700">
                 Proceed to Checkout
               </button>
             </div>
@@ -309,7 +338,7 @@ export default function Page(): React.ReactElement {
 
   /* ---------- Render ---------- */
   return (
-    <div className={`min-h-screen font-sans ${isDark ? 'bg-gray-950 text-white' : 'bg-white text-gray-900'}`}>
+    <div className={`min-h-screen font-body ${isDark ? 'bg-gray-950 text-white' : 'bg-white text-gray-900'}`}>
       {/* Mobile menu slide-over */}
       {isMobileMenuOpen && (
         <div className="fixed inset-0 z-[60]">
@@ -318,7 +347,7 @@ export default function Page(): React.ReactElement {
             <button className="absolute right-4 top-4 text-gray-400 hover:text-white" onClick={() => setIsMobileMenuOpen(false)}>
               ✕
             </button>
-            <h3 className="text-xl font-bold mb-4">Categories</h3>
+            <h3 className="text-xl font-heading font-semibold mb-4">Categories</h3>
             <ul className="space-y-2">
               {allCats.slice(1).map((cat) => (
                 <li key={cat}>
@@ -337,15 +366,6 @@ export default function Page(): React.ReactElement {
             </ul>
 
             <div className="mt-6 border-t border-gray-700 pt-4">
-              <button
-                onClick={() => {
-                  setCurrentPage('admin')
-                  setIsMobileMenuOpen(false)
-                }}
-                className="w-full text-left py-2 px-4 rounded-lg hover:bg-yellow-400 hover:text-gray-900 text-red-400"
-              >
-                Admin
-              </button>
               <button
                 onClick={() => {
                   setCurrentPage('cart')
@@ -377,7 +397,7 @@ export default function Page(): React.ReactElement {
               <span className="text-3xl text-yellow-400">☀️</span>
             </button>
             <span
-              className="text-2xl font-bold tracking-tight cursor-pointer"
+              className="text-2xl font-heading font-bold tracking-tight cursor-pointer"
               onClick={() => {
                 setCurrentPage('home')
                 setSelectedCategory('all')
@@ -396,7 +416,7 @@ export default function Page(): React.ReactElement {
                   setSelectedCategory(cat)
                   setCurrentPage('products')
                 }}
-                className={`px-4 py-2 rounded-full transition-colors ${isDark ? 'hover:bg-yellow-400 hover:text-gray-900 bg-transparent text-white' : 'hover:bg-yellow-400 hover:text-gray-900 bg-transparent text-gray-900'} capitalize`}
+                className={`px-4 py-2 rounded-md transition-colors ${isDark ? 'hover:bg-yellow-400 hover:text-gray-900 bg-transparent text-white' : 'hover:bg-yellow-400 hover:text-gray-900 bg-transparent text-gray-900'} capitalize`}
               >
                 {cat}
               </button>
@@ -406,7 +426,7 @@ export default function Page(): React.ReactElement {
             <div className="relative" ref={moreRef}>
               <button
                 onClick={() => setIsMoreOpen(!isMoreOpen)}
-                className={`px-4 py-2 rounded-full transition-colors ${isDark ? 'hover:bg-yellow-400 hover:text-gray-900 bg-transparent text-white' : 'hover:bg-yellow-400 hover:text-gray-900 bg-transparent text-gray-900'}`}
+                className={`px-4 py-2 rounded-md transition-colors ${isDark ? 'hover:bg-yellow-400 hover:text-gray-900 bg-transparent text-white' : 'hover:bg-yellow-400 hover:text-gray-900 bg-transparent text-gray-900'}`}
               >
                 More...
               </button>
@@ -431,17 +451,13 @@ export default function Page(): React.ReactElement {
                 </div>
               )}
             </div>
-
-            <button onClick={() => setCurrentPage('admin')} className="px-4 py-2 rounded-full text-red-400">
-              Admin
-            </button>
           </div>
 
           {/* Right side */}
           <div className="flex items-center space-x-4">
             <button
               onClick={() => setCurrentPage('cart')}
-              className={`relative px-3 py-2 rounded-full transition-colors ${isDark ? 'hover:bg-yellow-400 hover:text-gray-900 text-white' : 'hover:bg-yellow-400 hover:text-gray-900 text-gray-900'}`}
+              className={`relative px-3 py-2 rounded-md transition-colors ${isDark ? 'hover:bg-yellow-400 hover:text-gray-900 text-white' : 'hover:bg-yellow-400 hover:text-gray-900 text-gray-900'}`}
             >
               <ShoppingCart />
               {cartItems.length > 0 && (
@@ -451,7 +467,7 @@ export default function Page(): React.ReactElement {
               )}
             </button>
 
-            <button onClick={() => setIsDark(!isDark)} className="px-3 py-1 rounded-full border border-gray-600 hover:bg-gray-200 dark:hover:bg-gray-800">
+            <button onClick={() => setIsDark(!isDark)} className="px-3 py-1 rounded-md border border-gray-600 hover:bg-gray-200 dark:hover:bg-gray-800">
               {isDark ? <Moon /> : <Sun />}
             </button>
 
@@ -478,7 +494,7 @@ export default function Page(): React.ReactElement {
                 <section className={`${isDark ? 'bg-gray-950 text-white' : 'bg-white text-gray-900'} py-12 md:py-20 px-4 md:px-8 min-h-screen`}>
                   <div className="container mx-auto">
                     {/* Ensure AdminPage content sits on the correct background */}
-                    <div className={`${isDark ? 'bg-gray-900 border-gray-800 text-white' : 'bg-white border-gray-200 text-gray-900'} p-6 rounded-xl shadow`}>
+                    <div className={`${isDark ? 'bg-gray-900 border-gray-800 text-white' : 'bg-yellow-50 border-gray-300 text-gray-900'} p-6 rounded-xl shadow`}>
                       <AdminPage />
                     </div>
                   </div>
@@ -522,11 +538,11 @@ export default function Page(): React.ReactElement {
         <div className="container mx-auto text-center md:text-left">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div>
-              <h4 className="text-xl font-semibold mb-4">Solar Store</h4>
+              <h4 className="text-xl font-heading font-semibold mb-4">Solar Store</h4>
               <p>Your one-stop shop for all things solar power. Sustainable energy, smarter living.</p>
             </div>
             <div>
-              <h4 className="text-xl font-semibold mb-4">Quick Links</h4>
+              <h4 className="text-xl font-heading font-semibold mb-4">Quick Links</h4>
               <ul className="space-y-2">
                 <li>
                   <button
@@ -563,7 +579,7 @@ export default function Page(): React.ReactElement {
               </ul>
             </div>
             <div>
-              <h4 className="text-xl font-semibold mb-4">Contact Info</h4>
+              <h4 className="text-xl font-heading font-semibold mb-4">Contact Info</h4>
               <p>123 Solar Street, Green City, 90210</p>
               <p>Email: info@solarstore.com</p>
               <p>Phone: +1 (555) 123-4567</p>

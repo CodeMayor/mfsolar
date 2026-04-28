@@ -190,7 +190,7 @@ const Item = () => {
 
         {/* Fixed "Add To Cart" button */}
         <div className="fixed bottom-0 left-0 w-full max-w-sm bg-white p-4 shadow-top">
-          <button className="w-full bg-teal-500 text-white py-3 rounded-full flex items-center justify-center font-bold text-lg shadow-lg hover:bg-teal-600 transition-colors">
+          <button className="w-full bg-teal-500 text-white py-3 rounded-md flex items-center justify-center font-bold text-lg shadow-lg hover:bg-teal-600 transition-colors">
             Add To Cart
             <svg
               xmlns="http://www.w3.org/2000/svg"

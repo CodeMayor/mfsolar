@@ -116,7 +116,7 @@ const App = () => {
 
         {/* Filter and Sort Buttons */}
         <div className="flex overflow-x-auto gap-2 pb-2 mb-6">
-          <button className="flex-shrink-0 flex items-center px-4 py-2 bg-gray-100 text-gray-700 rounded-full font-medium text-sm transition-colors hover:bg-gray-200">
+          <button className="flex-shrink-0 flex items-center px-4 py-2 bg-gray-100 text-gray-700 rounded-md font-medium text-sm transition-colors hover:bg-gray-200">
             {/* Filter Icon */}
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -132,7 +132,7 @@ const App = () => {
           {['Popularity', 'Newest', 'Most Expensive'].map((option, index) => (
             <button
               key={index}
-              className="flex-shrink-0 px-4 py-2 bg-gray-100 text-gray-700 rounded-full font-medium text-sm transition-colors hover:bg-gray-200"
+              className="flex-shrink-0 px-4 py-2 bg-gray-100 text-gray-700 rounded-md font-medium text-sm transition-colors hover:bg-gray-200"
             >
               {option}
             </button>
