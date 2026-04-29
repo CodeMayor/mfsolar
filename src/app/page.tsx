@@ -374,7 +374,7 @@ export default function Page(): React.ReactElement {
             <div className="mt-6 border-t border-gray-700 pt-4">
               <button
                 onClick={() => {
-                  setCurrentPage('cart')
+                  router.push('/cart')
                   setIsMobileMenuOpen(false)
                 }}
                 className="w-full text-left py-2 px-4 rounded-lg hover:bg-yellow-400 hover:text-gray-900"
@@ -462,7 +462,7 @@ export default function Page(): React.ReactElement {
           {/* Right side */}
           <div className="flex items-center space-x-4">
             <button
-              onClick={() => setCurrentPage('cart')}
+              onClick={() => router.push('/cart')}
               className={`relative px-3 py-2 rounded-md transition-colors ${isDark ? 'hover:bg-yellow-400 hover:text-gray-900 text-white' : 'hover:bg-yellow-400 hover:text-gray-900 text-gray-900'}`}
             >
               <ShoppingCart />
