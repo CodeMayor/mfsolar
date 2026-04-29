@@ -51,8 +51,14 @@ export default function Page(): React.ReactElement {
     removeFromCart,
     clearCart,
     selectedCategory,
-    setSelectedCategory
+    setSelectedCategory,
+    fetchProducts
   } = useStore()
+
+  // Fetch products on mount
+  useEffect(() => {
+    fetchProducts()
+  }, [])
 
   // Category groups
   const mainNavCats: StoreState['selectedCategory'][] = ['panels', 'batteries', 'inverters']
@@ -192,7 +198,7 @@ export default function Page(): React.ReactElement {
                 <h3 className="text-lg font-heading font-bold mb-2 line-clamp-2">{product.name}</h3>
                 <p className={`text-sm font-body mb-4 line-clamp-2 flex-grow ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{product.description}</p>
                 <div className="flex items-center justify-between mb-4">
-                  <div className={`text-2xl font-bold ${isDark ? 'text-green-400' : 'text-green-600'}`}>${product.price.toFixed(2)}</div>
+                  <div className={`text-2xl font-bold ${isDark ? 'text-green-400' : 'text-green-600'}`}>₦{product.price.toFixed(2)}</div>
                   <span className="text-xs px-2 py-1 bg-yellow-400 text-gray-900 rounded-md font-semibold">In Stock</span>
                 </div>
                 <button 
@@ -257,7 +263,7 @@ export default function Page(): React.ReactElement {
                 <h3 className="text-lg font-heading font-bold mb-2 line-clamp-2">{product.name}</h3>
                 <p className={`text-sm font-body mb-4 line-clamp-2 flex-grow ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{product.description}</p>
                 <div className="flex items-center justify-between mb-4">
-                  <div className={`text-2xl font-bold ${isDark ? 'text-green-400' : 'text-green-600'}`}>${product.price.toFixed(2)}</div>
+                  <div className={`text-2xl font-bold ${isDark ? 'text-green-400' : 'text-green-600'}`}>₦{product.price.toFixed(2)}</div>
                   <span className="text-xs px-2 py-1 bg-yellow-400 text-gray-900 rounded-md font-semibold">In Stock</span>
                 </div>
                 <button 
@@ -316,7 +322,7 @@ export default function Page(): React.ReactElement {
                 <div className="flex-grow">
                   <h3 className="text-lg font-heading font-semibold">{item.name}</h3>
                   <p className={`text-sm font-body ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Quantity: {item.quantity}</p>
-                  <p className={`text-lg font-bold ${isDark ? 'text-green-400' : 'text-green-600'}`}>${item.price.toFixed(2)}</p>
+                  <p className={`text-lg font-bold ${isDark ? 'text-green-400' : 'text-green-600'}`}>₦{item.price.toFixed(2)}</p>
                 </div>
                 <button onClick={() => removeFromCart(item.id)} className="text-red-500 hover:text-red-400">
                   Remove
@@ -325,7 +331,7 @@ export default function Page(): React.ReactElement {
             ))}
 
             <div className={`${isDark ? 'bg-gray-900 border-gray-800' : 'bg-yellow-50 border-gray-300 shadow-md'} flex flex-col md:flex-row justify-between items-center p-6 rounded-xl border mt-8`}>
-              <span className={`${isDark ? 'text-white' : 'text-gray-900'} text-2xl font-bold`}>Total: ${calculateTotal()}</span>
+              <span className={`${isDark ? 'text-white' : 'text-gray-900'} text-2xl font-bold`}>Total: ₦{calculateTotal()}</span>
               <button onClick={handleCheckout} className="px-8 py-3 bg-emerald-600 text-white rounded-md shadow-lg hover:bg-emerald-700">
                 Proceed to Checkout
               </button>

@@ -9,19 +9,27 @@ import { Menu, ShoppingCart, Sun, Moon, Upload, X } from 'lucide-react';
 
 const AdminPage = () => {
   const router = useRouter();
-  const { products, addProduct, updateProduct, deleteProduct, cartItems } = useStore();
+  const { products, addProduct, updateProduct, deleteProduct, cartItems, fetchProducts, setAdminPassword } = useStore();
   const [formData, setFormData] = useState({ id: null, name: '', category: 'panels', description: '', price: '', imageUrl: '' });
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState('');
   const [isDark, setIsDark] = useState(true);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [passwordInput, setPasswordInput] = useState('');
+  const [passwordError, setPasswordError] = useState('');
 
-  // Sync with localStorage on mount
+  // Sync with localStorage on mount + check sessionStorage for saved auth
   React.useEffect(() => {
     try {
       const v = localStorage.getItem('mf-solar-dark-mode');
       if (v !== null) {
         setIsDark(v === 'true');
+      }
+      const savedPassword = sessionStorage.getItem('mf-solar-admin-auth');
+      if (savedPassword) {
+        setAdminPassword(savedPassword);
+        setIsAuthenticated(true);
       }
     } catch {}
   }, []);
@@ -62,15 +70,24 @@ const AdminPage = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (formData.id) {
-      updateProduct(formData);
-    } else {
-      addProduct({ ...formData, price: parseFloat(formData.price) });
-    }
-    // Clear form
-    setFormData({ id: null, name: '', category: 'panels', description: '', price: '', imageUrl: '' });
-    setImageFile(null);
-    setImagePreview('');
+    const submitAsync = async () => {
+      try {
+        if (formData.id) {
+          await updateProduct({ ...formData, price: parseFloat(formData.price) }, imageFile || undefined);
+        } else {
+          await addProduct({ ...formData, price: parseFloat(formData.price) }, imageFile || undefined);
+        }
+        // Clear form
+        setFormData({ id: null, name: '', category: 'panels', description: '', price: '', imageUrl: '' });
+        setImageFile(null);
+        setImagePreview('');
+        alert('Product saved successfully!');
+      } catch (error) {
+        console.error('Error saving product:', error);
+        alert('Failed to save product. Please try again.');
+      }
+    };
+    submitAsync();
   };
 
   const handleEdit = (product) => {
@@ -80,9 +97,62 @@ const AdminPage = () => {
 
   const handleDelete = (productId) => {
     if (window.confirm('Are you sure you want to delete this product?')) {
-      deleteProduct(productId);
+      deleteProduct(productId).catch((error) => {
+        console.error('Error deleting product:', error);
+        alert('Failed to delete product. Please try again.');
+      });
     }
   };
+
+  const handlePasswordSubmit = (e) => {
+    e.preventDefault();
+    // We optimistically set the password and let the first API call confirm it
+    if (!passwordInput.trim()) {
+      setPasswordError('Please enter a password.');
+      return;
+    }
+    setAdminPassword(passwordInput);
+    try { sessionStorage.setItem('mf-solar-admin-auth', passwordInput); } catch {}
+    setIsAuthenticated(true);
+    setPasswordError('');
+  };
+
+  // Fetch products on mount (only after authenticated)
+  React.useEffect(() => {
+    if (isAuthenticated) fetchProducts();
+  }, [isAuthenticated]);
+
+  // ── Password Gate ──────────────────────────────────────────────────────────
+  if (!isAuthenticated) {
+    return (
+      <div className={`min-h-screen flex items-center justify-center ${isDark ? 'bg-gray-950' : 'bg-gray-50'}`}>
+        <div className={`w-full max-w-sm p-8 rounded-2xl shadow-2xl border ${isDark ? 'bg-gray-900 border-gray-800 text-white' : 'bg-white border-gray-200 text-gray-900'}`}>
+          <div className="text-center mb-8">
+            <span className="text-5xl">🔒</span>
+            <h2 className="mt-4 text-2xl font-bold font-heading">Admin Access</h2>
+            <p className={`mt-2 text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Enter your admin password to continue</p>
+          </div>
+          <form onSubmit={handlePasswordSubmit} className="space-y-4">
+            <input
+              type="password"
+              value={passwordInput}
+              onChange={(e) => { setPasswordInput(e.target.value); setPasswordError(''); }}
+              placeholder="Admin password"
+              autoFocus
+              className={`w-full px-4 py-3 rounded-lg border text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400 ${isDark ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500' : 'bg-gray-50 border-gray-300 text-gray-900 placeholder-gray-400'}`}
+            />
+            {passwordError && <p className="text-red-500 text-sm">{passwordError}</p>}
+            <button
+              type="submit"
+              className="w-full py-3 bg-yellow-400 text-gray-900 font-bold rounded-lg hover:bg-yellow-500 transition-colors"
+            >
+              Unlock Admin Panel
+            </button>
+          </form>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={`min-h-screen font-body ${isDark ? 'bg-gray-950 text-white' : 'bg-white text-gray-900'}`}>
@@ -104,14 +174,7 @@ const AdminPage = () => {
                   Home
                 </button>
               </li>
-              <li>
-                <button
-                  onClick={() => router.push('/products')}
-                  className="w-full text-left py-2 px-4 rounded-lg hover:bg-yellow-400 hover:text-gray-900"
-                >
-                  Products
-                </button>
-              </li>
+
               <li>
                 <button
                   onClick={() => router.push('/cart')}
@@ -154,12 +217,7 @@ const AdminPage = () => {
             >
               Home
             </button>
-            <button
-              onClick={() => router.push('/products')}
-              className={`px-4 py-2 rounded-md transition-colors ${isDark ? 'hover:bg-yellow-400 hover:text-gray-900 bg-transparent text-white' : 'hover:bg-yellow-400 hover:text-gray-900 bg-transparent text-gray-900'}`}
-            >
-              Products
-            </button>
+
             <button
               className={`px-4 py-2 rounded-md transition-colors bg-yellow-400 text-gray-900 font-semibold`}
             >
@@ -229,11 +287,14 @@ const AdminPage = () => {
                   <option value="panels">Panels</option>
                   <option value="batteries">Batteries</option>
                   <option value="inverters">Inverters</option>
+                  <option value="generators">Generators</option>
+                  <option value="streetlights">Streetlights</option>
+                  <option value="charge-controllers">Charge Controllers</option>
                 </select>
               </div>
 
               <div>
-                <label className={`block mb-2 font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Price ($)</label>
+                <label className={`block mb-2 font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Price (₦)</label>
                 <input 
                   type="number" 
                   name="price" 
@@ -324,7 +385,7 @@ const AdminPage = () => {
                   <div>
                     <h4 className="text-lg font-semibold">{product.name}</h4>
                     <p className={`${isDark ? 'text-gray-400' : 'text-gray-600'} text-sm`}>{product.category}</p>
-                    <p className={`${isDark ? 'text-green-400' : 'text-green-600'} font-bold`}>${product.price.toFixed(2)}</p>
+                    <p className={`${isDark ? 'text-green-400' : 'text-green-600'} font-bold`}>₦{product.price.toFixed(2)}</p>
                   </div>
                 </div>
                 <div className="flex space-x-2 mt-4 md:mt-0">
@@ -359,11 +420,7 @@ const AdminPage = () => {
                     Home
                   </button>
                 </li>
-                <li>
-                  <button onClick={() => router.push('/products')} className="hover:underline">
-                    Products
-                  </button>
-                </li>
+
                 <li>
                   <a href="#" className="hover:underline">
                     About Us
