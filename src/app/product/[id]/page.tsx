@@ -182,10 +182,10 @@ export default function ProductDetailsPage(): React.ReactElement {
             <div className="py-4 border-y border-gray-700">
               <div className="flex items-baseline space-x-3">
                 <span className="text-4xl font-bold text-green-400">
-                  ${product.price.toFixed(2)}
+                  ₦{product.price.toFixed(2)}
                 </span>
                 <span className="text-lg text-gray-500 line-through">
-                  ${(product.price * 1.2).toFixed(2)}
+                  ₦{(product.price * 1.2).toFixed(2)}
                 </span>
                 <span className="px-2 py-1 text-xs font-semibold bg-green-600 text-white rounded">
                   Save 20%
@@ -316,7 +316,7 @@ export default function ProductDetailsPage(): React.ReactElement {
                   </p>
                   <div className="flex items-center justify-between mb-4">
                     <div className="text-2xl font-bold text-green-400">
-                      ${relatedProduct.price.toFixed(2)}
+                      ₦{relatedProduct.price.toFixed(2)}
                     </div>
                     <span className="text-xs px-2 py-1 bg-yellow-400 text-gray-900 rounded-md font-semibold">In Stock</span>
                   </div>
