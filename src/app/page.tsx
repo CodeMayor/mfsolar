@@ -19,7 +19,7 @@ type PageKey =
   | 'streetlights'
   | 'charge-controllers'
 
-export default function Page(): React.ReactElement {
+function StoreContent(): React.ReactElement {
   // Router
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -417,3 +417,11 @@ export default function Page(): React.ReactElement {
     </div>
   )
 }
+
+export default function Page() {
+  return (
+    <React.Suspense fallback={<div className="min-h-screen bg-gray-950 flex items-center justify-center text-white">Loading Store...</div>}>
+      <StoreContent />
+    </React.Suspense>
+  )
+}
