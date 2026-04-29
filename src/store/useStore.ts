@@ -1,10 +1,11 @@
 import { create } from 'zustand';
+import { supabase } from '@/lib/supabase';
 
 // 1. Define the core type for a product
 export type Product = {
   id: number;
   name: string;
-  category: 'panels' | 'batteries' | 'inverters' | 'generators' | 'streetlights' | 'charge-controllers'; // Added new categories
+  category: 'panels' | 'batteries' | 'inverters' | 'generators' | 'streetlights' | 'charge-controllers';
   description: string;
   price: number;
   imageUrl: string;
@@ -20,99 +21,57 @@ export type StoreState = {
   products: Product[];
   cartItems: CartItem[];
   selectedCategory: 'all' | Product['category'];
+  isLoading: boolean;
+  adminPassword: string;
 
   // Actions
+  fetchProducts: () => Promise<void>;
+  setAdminPassword: (password: string) => void;
   addToCart: (product: Product) => void;
   removeFromCart: (productId: number) => void;
   clearCart: () => void;
-  addProduct: (newProduct: Omit<Product, 'id'>) => void;
-  updateProduct: (updatedProduct: Product) => void;
-  deleteProduct: (productId: number) => void;
+  addProduct: (newProduct: Omit<Product, 'id'>, imageFile?: File) => Promise<void>;
+  updateProduct: (updatedProduct: Product, imageFile?: File) => Promise<void>;
+  deleteProduct: (productId: number) => Promise<void>;
   setSelectedCategory: (category: StoreState['selectedCategory']) => void;
 };
 
-// Sample product data, now explicitly typed
-const initialProducts: Product[] = [
-  {
-    id: 1,
-    name: 'High-Efficiency Monocrystalline Panel',
-    category: 'panels',
-    description: 'A durable and highly efficient solar panel with excellent low-light performance.',
-    price: 250,
-    imageUrl: '/sp1.jpg',
-  },
-  {
-    id: 2,
-    name: 'Lithium-Ion Solar Battery (5 kWh)',
-    category: 'batteries',
-    description: 'Long-lasting and reliable battery for residential energy storage.',
-    price: 1800,
-    imageUrl: 'https://placehold.co/400x300/fde047/000000.png?text=Solar+Battery',
-  },
-  {
-    id: 3,
-    name: 'Pure Sine Wave Inverter (3 kW)',
-    category: 'inverters',
-    description: 'Converts DC power from panels to AC power for household use with high efficiency.',
-    price: 550,
-    imageUrl: '/iv1.jpg',
-  },
-  {
-    id: 4,
-    name: 'Deep Cycle AGM Battery (100 Ah)',
-    category: 'batteries',
-    description: 'Robust and maintenance-free battery for off-grid systems and backups.',
-    price: 320,
-    imageUrl: 'https://placehold.co/400x300/fde047/000000.png?text=AGM+Battery',
-  },
-  {
-    id: 5,
-    name: 'Polycrystalline Solar Panel (300W)',
-    category: 'panels',
-    description: 'An economical option for solar power generation with good performance.',
-    price: 180,
-    imageUrl: '/sp2.jpg',
-  },
-  {
-    id: 6,
-    name: 'Hybrid Solar Inverter (5 kW)',
-    category: 'inverters',
-    description: 'Combines a charge controller and an inverter for simplified system setup.',
-    price: 900,
-    imageUrl: '/iv2.jpg',
-  },
-  // --- New Products ---
-  {
-    id: 7,
-    name: 'Portable Solar Generator',
-    category: 'generators',
-    description: 'Portable solar generator for backup power.',
-    price: 120000,
-    imageUrl: '/sg1.jpg',
-  },
-  {
-    id: 8,
-    name: 'Solar Streetlight',
-    category: 'streetlights',
-    description: 'Solar-powered streetlight for outdoor lighting.',
-    price: 35000,
-    imageUrl: '/sl1.jpg',
-  },
-  {
-    id: 9,
-    name: 'Solar Charge Controller',
-    category: 'charge-controllers',
-    description: 'Efficient charge controller for solar systems.',
-    price: 18000,
-    imageUrl: '/cc1.jpg',
-  },
-];
-
-const useStore = create<StoreState>((set) => ({
+const useStore = create<StoreState>((set, get) => ({
   // State
-  products: initialProducts,
+  products: [],
   cartItems: [],
   selectedCategory: 'all',
+  isLoading: false,
+  adminPassword: '',
+
+  setAdminPassword: (password: string) => set({ adminPassword: password }),
+
+  // Fetch products from Supabase
+  fetchProducts: async () => {
+    set({ isLoading: true });
+    try {
+      const { data, error } = await supabase
+        .from('products')
+        .select('*')
+        .order('id', { ascending: true });
+
+      if (error) throw error;
+
+      const products: Product[] = data.map((item) => ({
+        id: item.id,
+        name: item.name,
+        category: item.category as Product['category'],
+        description: item.description,
+        price: Number(item.price),
+        imageUrl: item.image_url,
+      }));
+
+      set({ products, isLoading: false });
+    } catch (error) {
+      console.error('Error fetching products:', error);
+      set({ isLoading: false });
+    }
+  },
 
   // Actions for the cart
   addToCart: (product: Product) =>
@@ -138,26 +97,143 @@ const useStore = create<StoreState>((set) => ({
 
   clearCart: () => set({ cartItems: [] }),
 
-  // Actions for the admin panel (CRUD)
-  addProduct: (newProduct: Omit<Product, 'id'>) =>
-    set((state) => ({
-      products: [...state.products, { ...newProduct, id: state.products.length + 1 }],
-    })),
+  // Actions for the admin panel (CRUD via secure server-side API)
+  addProduct: async (newProduct: Omit<Product, 'id'>, imageFile?: File) => {
+    const { adminPassword } = get();
+    try {
+      let imageBase64: string | undefined;
+      let imageExtension: string | undefined;
 
-  updateProduct: (updatedProduct: Product) =>
-    set((state) => ({
-      products: state.products.map((product) =>
-        product.id === updatedProduct.id ? updatedProduct : product
-      ),
-    })),
+      if (imageFile) {
+        imageExtension = imageFile.name.split('.').pop();
+        imageBase64 = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result as string);
+          reader.onerror = reject;
+          reader.readAsDataURL(imageFile);
+        });
+      }
 
-  deleteProduct: (productId: number) =>
-    set((state) => ({
-      products: state.products.filter((product) => product.id !== productId),
-    })),
+      const res = await fetch('/api/admin/products', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-admin-password': adminPassword,
+        },
+        body: JSON.stringify({
+          name: newProduct.name,
+          category: newProduct.category,
+          description: newProduct.description,
+          price: newProduct.price,
+          imageUrl: newProduct.imageUrl,
+          imageBase64,
+          imageExtension,
+        }),
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || 'Failed to add product');
+      }
+
+      const { product: data } = await res.json();
+      const product: Product = {
+        id: data.id,
+        name: data.name,
+        category: data.category as Product['category'],
+        description: data.description,
+        price: Number(data.price),
+        imageUrl: data.image_url,
+      };
+
+      set((state) => ({ products: [...state.products, product] }));
+    } catch (error) {
+      console.error('Error adding product:', error);
+      throw error;
+    }
+  },
+
+  updateProduct: async (updatedProduct: Product, imageFile?: File) => {
+    const { adminPassword } = get();
+    try {
+      let imageBase64: string | undefined;
+      let imageExtension: string | undefined;
+
+      if (imageFile) {
+        imageExtension = imageFile.name.split('.').pop();
+        imageBase64 = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result as string);
+          reader.onerror = reject;
+          reader.readAsDataURL(imageFile);
+        });
+      }
+
+      const res = await fetch('/api/admin/products', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-admin-password': adminPassword,
+        },
+        body: JSON.stringify({
+          id: updatedProduct.id,
+          name: updatedProduct.name,
+          category: updatedProduct.category,
+          description: updatedProduct.description,
+          price: updatedProduct.price,
+          imageUrl: updatedProduct.imageUrl,
+          imageBase64,
+          imageExtension,
+        }),
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || 'Failed to update product');
+      }
+
+      const { imageUrl } = await res.json();
+      set((state) => ({
+        products: state.products.map((product) =>
+          product.id === updatedProduct.id
+            ? { ...updatedProduct, imageUrl }
+            : product
+        ),
+      }));
+    } catch (error) {
+      console.error('Error updating product:', error);
+      throw error;
+    }
+  },
+
+  deleteProduct: async (productId: number) => {
+    const { adminPassword } = get();
+    try {
+      const res = await fetch('/api/admin/products', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-admin-password': adminPassword,
+        },
+        body: JSON.stringify({ id: productId }),
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || 'Failed to delete product');
+      }
+
+      set((state) => ({
+        products: state.products.filter((product) => product.id !== productId),
+      }));
+    } catch (error) {
+      console.error('Error deleting product:', error);
+      throw error;
+    }
+  },
 
   // Action for category filtering
   setSelectedCategory: (category: StoreState['selectedCategory']) => set({ selectedCategory: category }),
 }));
 
-export default useStore; 
+export default useStore;
