@@ -5,16 +5,17 @@ import React, { useState } from 'react';
 import useStore from '../store/useStore';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { Menu, ShoppingCart, Sun, Moon, Upload, X } from 'lucide-react';
+import Navbar from './Navbar';
+import Footer from './Footer';
+import { Upload, X } from 'lucide-react';
 
 const AdminPage = () => {
   const router = useRouter();
-  const { products, addProduct, updateProduct, deleteProduct, cartItems, fetchProducts, setAdminPassword } = useStore();
+  const { products, addProduct, updateProduct, deleteProduct, fetchProducts, setAdminPassword } = useStore();
   const [formData, setFormData] = useState({ id: null, name: '', category: 'panels', description: '', price: '', imageUrl: '' });
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState('');
   const [isDark, setIsDark] = useState(true);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [passwordInput, setPasswordInput] = useState('');
   const [passwordError, setPasswordError] = useState('');
@@ -156,99 +157,7 @@ const AdminPage = () => {
 
   return (
     <div className={`min-h-screen font-body ${isDark ? 'bg-gray-950 text-white' : 'bg-white text-gray-900'}`}>
-      {/* Mobile menu slide-over */}
-      {isMobileMenuOpen && (
-        <div className="fixed inset-0 z-[60]">
-          <div className="absolute inset-0 bg-black/50" onClick={() => setIsMobileMenuOpen(false)} />
-          <aside className={`${isDark ? 'bg-gray-900 text-white' : 'bg-white text-gray-900'} absolute left-0 top-0 h-full w-72 p-6 shadow-2xl`}>
-            <button className="absolute right-4 top-4 text-gray-400 hover:text-white" onClick={() => setIsMobileMenuOpen(false)}>
-              ✕
-            </button>
-            <h3 className="text-xl font-heading font-semibold mb-4">Menu</h3>
-            <ul className="space-y-2">
-              <li>
-                <button
-                  onClick={() => router.push('/')}
-                  className="w-full text-left py-2 px-4 rounded-lg hover:bg-yellow-400 hover:text-gray-900"
-                >
-                  Home
-                </button>
-              </li>
-
-              <li>
-                <button
-                  onClick={() => router.push('/cart')}
-                  className="w-full text-left py-2 px-4 rounded-lg hover:bg-yellow-400 hover:text-gray-900"
-                >
-                  Cart ({cartItems.length})
-                </button>
-              </li>
-            </ul>
-          </aside>
-        </div>
-      )}
-
-      {/* Header */}
-      <header
-        className={`${isDark ? 'bg-gray-950 text-white' : 'bg-white text-gray-900'} sticky top-0 z-50 border-b ${isDark ? 'border-gray-800' : 'border-gray-200'} backdrop-blur-md`}
-      >
-        <nav className="container mx-auto px-4 md:px-8 py-4 flex items-center justify-between">
-          {/* Logo */}
-          <div className="flex items-center space-x-2">
-            <button
-              onClick={() => router.push('/')}
-              className="focus:outline-none"
-            >
-              <span className="text-3xl text-yellow-400">☀️</span>
-            </button>
-            <span
-              className="text-2xl font-heading font-bold tracking-tight cursor-pointer"
-              onClick={() => router.push('/')}
-            >
-              Solar Store
-            </span>
-          </div>
-
-          {/* Center nav (desktop) */}
-          <div className="flex-grow hidden md:flex justify-center space-x-6">
-            <button
-              onClick={() => router.push('/')}
-              className={`px-4 py-2 rounded-md transition-colors ${isDark ? 'hover:bg-yellow-400 hover:text-gray-900 bg-transparent text-white' : 'hover:bg-yellow-400 hover:text-gray-900 bg-transparent text-gray-900'}`}
-            >
-              Home
-            </button>
-
-            <button
-              className={`px-4 py-2 rounded-md transition-colors bg-yellow-400 text-gray-900 font-semibold`}
-            >
-              Admin
-            </button>
-          </div>
-
-          {/* Right side */}
-          <div className="flex items-center space-x-4">
-            <button
-              onClick={() => router.push('/cart')}
-              className={`relative px-3 py-2 rounded-md transition-colors ${isDark ? 'hover:bg-yellow-400 hover:text-gray-900 text-white' : 'hover:bg-yellow-400 hover:text-gray-900 text-gray-900'}`}
-            >
-              <ShoppingCart />
-              {cartItems.length > 0 && (
-                <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-yellow-400 text-[10px] text-gray-900 font-bold">
-                  {cartItems.length}
-                </span>
-              )}
-            </button>
-
-            <button onClick={() => setIsDark(!isDark)} className="px-3 py-1 rounded-md border border-gray-600 hover:bg-gray-200 dark:hover:bg-gray-800">
-              {isDark ? <Moon /> : <Sun />}
-            </button>
-
-            <button onClick={() => setIsMobileMenuOpen(true)} className="md:hidden px-2 py-1 rounded-md">
-              <Menu />
-            </button>
-          </div>
-        </nav>
-      </header>
+      <Navbar isDark={isDark} setIsDark={setIsDark} showCategoryNav={false} />
 
       {/* Main Content */}
       <main className={`py-12 md:py-20 px-4 md:px-8 ${isDark ? 'bg-gray-950' : 'bg-gray-50'} min-h-screen`}>
@@ -402,49 +311,7 @@ const AdminPage = () => {
         </div>
       </main>
 
-      {/* Footer */}
-      <footer
-        className={`${isDark ? 'bg-gray-900 text-gray-300' : 'bg-white text-gray-700'} border-t ${isDark ? 'border-gray-800' : 'border-gray-200'} py-8 px-4 md:px-8`}
-      >
-        <div className="container mx-auto text-center md:text-left">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div>
-              <h4 className="text-xl font-heading font-semibold mb-4">Solar Store</h4>
-              <p>Your one-stop shop for all things solar power. Sustainable energy, smarter living.</p>
-            </div>
-            <div>
-              <h4 className="text-xl font-heading font-semibold mb-4">Quick Links</h4>
-              <ul className="space-y-2">
-                <li>
-                  <button onClick={() => router.push('/')} className="hover:underline">
-                    Home
-                  </button>
-                </li>
-
-                <li>
-                  <a href="#" className="hover:underline">
-                    About Us
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:underline">
-                    Contact
-                  </a>
-                </li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="text-xl font-heading font-semibold mb-4">Contact Info</h4>
-              <p>123 Solar Street, Green City, 90210</p>
-              <p>Email: info@solarstore.com</p>
-              <p>Phone: +1 (555) 123-4567</p>
-            </div>
-          </div>
-        </div>
-        <div className="mt-8 pt-6 text-center text-sm text-gray-500">
-          <p>&copy; {new Date().getFullYear()} Solar Store. All rights reserved.</p>
-        </div>
-      </footer>
+      <Footer isDark={isDark} />
     </div>
   );
 };

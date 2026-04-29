@@ -5,6 +5,8 @@ import { useParams, useRouter } from 'next/navigation'
 import Image from 'next/image'
 import useStore from '@/store/useStore'
 import type { Product } from '@/store/useStore'
+import Navbar from '@/components/Navbar'
+import Footer from '@/components/Footer'
 import { ArrowLeft, ShoppingCart, Check, Star, Package, Shield, Truck } from 'lucide-react'
 
 export default function ProductDetailsPage(): React.ReactElement {
@@ -12,11 +14,12 @@ export default function ProductDetailsPage(): React.ReactElement {
   const router = useRouter()
   const productId = Number(params.id)
 
-  const { products, addToCart, cartItems } = useStore()
+  const { products, addToCart, cartItems, fetchProducts } = useStore()
   const [product, setProduct] = useState<Product | null>(null)
   const [quantity, setQuantity] = useState(1)
   const [addedToCart, setAddedToCart] = useState(false)
   const [isDark, setIsDark] = useState<boolean>(true)
+  const [isLoading, setIsLoading] = useState(true)
 
   // Sync with localStorage on mount (client-side only)
   useEffect(() => {
@@ -36,11 +39,24 @@ export default function ProductDetailsPage(): React.ReactElement {
     else document.documentElement.classList.remove('dark')
   }, [isDark])
 
+  // Fetch products if not loaded
+  useEffect(() => {
+    const loadProducts = async () => {
+      if (products.length === 0) {
+        await fetchProducts()
+      }
+      setIsLoading(false)
+    }
+    loadProducts()
+  }, [products.length, fetchProducts])
+
   // Find product
   useEffect(() => {
-    const foundProduct = products.find((p) => p.id === productId)
-    if (foundProduct) {
-      setProduct(foundProduct)
+    if (products.length > 0) {
+      const foundProduct = products.find((p) => p.id === productId)
+      if (foundProduct) {
+        setProduct(foundProduct)
+      }
     }
   }, [productId, products])
 
@@ -55,6 +71,17 @@ export default function ProductDetailsPage(): React.ReactElement {
 
   const incrementQuantity = () => setQuantity((prev) => prev + 1)
   const decrementQuantity = () => setQuantity((prev) => (prev > 1 ? prev - 1 : 1))
+
+  if (isLoading) {
+    return (
+      <div className={`min-h-screen flex items-center justify-center ${isDark ? 'bg-gray-950 text-white' : 'bg-gray-50 text-gray-900'}`}>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-yellow-400 mx-auto mb-4"></div>
+          <h2 className="text-2xl font-heading font-bold">Loading...</h2>
+        </div>
+      </div>
+    )
+  }
 
   if (!product) {
     return (
@@ -79,46 +106,7 @@ export default function ProductDetailsPage(): React.ReactElement {
 
   return (
     <div className={`min-h-screen font-sans ${isDark ? 'bg-gray-950 text-white' : 'bg-white text-gray-900'}`}>
-      {/* Header */}
-      <header
-        className={`${isDark ? 'bg-gray-950 text-white border-gray-800' : 'bg-white text-gray-900 border-gray-200'} sticky top-0 z-50 border-b backdrop-blur-md`}
-      >
-        <nav className="container mx-auto px-4 md:px-8 py-4 flex items-center justify-between">
-          {/* Logo - Always on the left */}
-          <div className="flex items-center space-x-2">
-            <button
-              onClick={() => router.push('/')}
-              className="focus:outline-none flex items-center space-x-2"
-            >
-              <span className="text-3xl">☀️</span>
-              <span className="text-2xl font-heading font-bold tracking-tight">Solar Store</span>
-            </button>
-          </div>
-
-          {/* Right side - Back button and Cart */}
-          <div className="flex items-center space-x-4">
-            <button
-              onClick={() => router.push('/')}
-              className={`flex items-center space-x-2 px-3 py-2 rounded-md transition-colors ${isDark ? 'text-white hover:bg-gray-800' : 'text-gray-900 hover:bg-gray-100'}`}
-            >
-              <ArrowLeft size={20} />
-              <span className="text-sm font-semibold hidden sm:inline">Back</span>
-            </button>
-
-            <button
-              onClick={() => router.push('/')}
-              className={`relative px-3 py-2 rounded-md transition-colors ${isDark ? 'hover:bg-yellow-400 hover:text-gray-900 text-white' : 'hover:bg-yellow-400 hover:text-gray-900 text-gray-900'}`}
-            >
-              <ShoppingCart />
-              {cartItems.length > 0 && (
-                <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-yellow-400 text-[10px] text-gray-900 font-bold">
-                  {cartItems.length}
-                </span>
-              )}
-            </button>
-          </div>
-        </nav>
-      </header>
+      <Navbar isDark={isDark} setIsDark={setIsDark} showCategoryNav={true} />
 
       {/* Main Content */}
       <main className="container mx-auto px-4 md:px-8 py-8 md:py-12">
@@ -128,8 +116,8 @@ export default function ProductDetailsPage(): React.ReactElement {
             Home
           </button>
           <span>/</span>
-          <button onClick={() => router.push('/')} className="hover:text-yellow-400 transition-colors capitalize">
-            {product.category}
+          <button onClick={() => router.push(`/products?category=${product.category}`)} className="hover:text-yellow-400 transition-colors capitalize">
+            {product.category.replace('-', ' ')}
           </button>
           <span>/</span>
           <span className="text-gray-500">{product.name}</span>
@@ -179,13 +167,13 @@ export default function ProductDetailsPage(): React.ReactElement {
             </div>
 
             {/* Price */}
-            <div className="py-4 border-y border-gray-700">
+            <div className={`py-4 border-y ${isDark ? 'border-gray-700' : 'border-gray-300'}`}>
               <div className="flex items-baseline space-x-3">
-                <span className="text-4xl font-bold text-green-400">
-                  ${product.price.toFixed(2)}
+                <span className={`text-4xl font-bold ${isDark ? 'text-green-400' : 'text-green-600'}`}>
+                  ₦{product.price.toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </span>
                 <span className="text-lg text-gray-500 line-through">
-                  ${(product.price * 1.2).toFixed(2)}
+                  ₦{(product.price * 1.2).toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </span>
                 <span className="px-2 py-1 text-xs font-semibold bg-green-600 text-white rounded">
                   Save 20%
@@ -315,8 +303,8 @@ export default function ProductDetailsPage(): React.ReactElement {
                     {relatedProduct.description}
                   </p>
                   <div className="flex items-center justify-between mb-4">
-                    <div className="text-2xl font-bold text-green-400">
-                      ${relatedProduct.price.toFixed(2)}
+                    <div className={`text-2xl font-bold ${isDark ? 'text-green-400' : 'text-green-600'}`}>
+                      ₦{relatedProduct.price.toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </div>
                     <span className="text-xs px-2 py-1 bg-yellow-400 text-gray-900 rounded-md font-semibold">In Stock</span>
                   </div>
@@ -336,14 +324,7 @@ export default function ProductDetailsPage(): React.ReactElement {
         )}
       </main>
 
-      {/* Footer */}
-      <footer
-        className={`${isDark ? 'bg-gray-900 text-gray-300 border-gray-800' : 'bg-white text-gray-700 border-gray-200'} border-t py-8 px-4 md:px-8 mt-16`}
-      >
-        <div className="container mx-auto text-center">
-          <p className="text-sm">&copy; {new Date().getFullYear()} Solar Store. All rights reserved.</p>
-        </div>
-      </footer>
+      <Footer isDark={isDark} />
     </div>
   )
 }

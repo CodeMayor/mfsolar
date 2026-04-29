@@ -1,146 +1,193 @@
-"use client"
+'use client'
 
-const Cart = () => (
-  <h1>Cart</h1>
-)
+import React, { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
+import Image from 'next/image'
+import useStore from '@/store/useStore'
+import Navbar from '@/components/Navbar'
+import Footer from '@/components/Footer'
+import { ArrowLeft, ShoppingCart, Trash2, Plus, Minus } from 'lucide-react'
 
-export default Cart
+export default function CartPage(): React.ReactElement {
+  const router = useRouter()
+  const { cartItems, removeFromCart, clearCart, addToCart } = useStore()
+  const [isDark, setIsDark] = useState<boolean>(true)
 
-// "use client"
-// import React from 'react';
-// import { create } from 'zustand';
-// import { persist } from 'zustand/middleware';
-// import { nanoid } from 'nanoid';
-// import { useRouter } from "next/navigation"
-// import {useCartStore, CartItem as CartItemType} from "@/store/cartStore"
-// import { Button } from "@/components/ui/button"
-// import { Trash2, ChevronLeft, Plus, Minus  } from 'lucide-react';
-// import FlutterwaveInlineButton from '@/components/FlutterwaveInlineButton';
-//
-// // 1. Define props interface:
-// interface CartItemProps {
-//   item: CartItemType;
-// }
-//
-// // CartItem component to display a single product in the cart
-//
-// // 2. Annotate the component with that interface:
-// const CartItem: React.FC<CartItemProps> = ({ item }) => {
-//
-//   const { updateQuantity, removeFromCart } = useCartStore();
-//
-//   const handleDecreaseQuantity = () => {
-//     updateQuantity(item.id, item.quantity - 1);
-//   };
-//
-//   const handleIncreaseQuantity = () => {
-//     updateQuantity(item.id, item.quantity + 1);
-//   };
-//
-//   const handleRemoveItem = () => {
-//     removeFromCart(item.id);
-//   };
-//
-//   return (
-//     <div className="flex items-center bg-white p-4 rounded-lg shadow-sm mb-4">
-//       <img
-//         src={item.imageUrl}
-//         alt={item.name}
-//         className="w-20 h-20 object-contain rounded-md mr-4"
-//       />
-//       <div className="flex-grow">
-//         <h3 className="text-base font-semibold text-gray-800">{item.name}</h3>
-//         <p className="text-lg font-bold text-teal-600">{item.price}</p>
-//         <div className="flex items-center mt-2">
-//           <Button variant="outline" className="h-8 w-8 p-0 rounded-full" onClick={handleDecreaseQuantity}>
-//             <Minus className="h-4 w-4" />
-//           </Button>
-//           <span className="text-sm font-medium mx-3 w-4 text-center">{item.quantity}</span>
-//           <Button variant="outline" className="h-8 w-8 p-0 rounded-full" onClick={handleIncreaseQuantity}>
-//             <Plus className="h-4 w-4" />
-//           </Button>
-//         </div>
-//       </div>
-//       <Button variant="ghost" className="h-8 w-8 p-0 text-gray-500 hover:text-red-500" onClick={handleRemoveItem}>
-//         <Trash2 className="h-5 w-5" />
-//       </Button>
-//     </div>
-//   );
-// };
-//
-// // Main component to render the Shopping Cart page
-// const App = () => {
-//   const { items, clearCart, getTotalPrice, getTotalItems } = useCartStore();
-//
-//   const router = useRouter()
-//
-//   const handleGoBack = () => {
-//     // This function would typically navigate back in a real application
-//     router.back()
-//     console.log("Going back...");
-//   };
-//
-//   const handleProceedToCheckout = () => {
-//     console.log("Proceeding to checkout...");
-//     // Future logic for checkout goes here
-//   };
-//
-//
-//   const email = 'customer@example.com';
-//   const name = 'Jane Doe';
-//
-//   const handleSuccess = () => {
-//     // e.g. redirect or show a toast
-//     // if (resp.status === 'successful') {
-//     //   window.location.href = '/thank-you';
-//     // }
-//     console.log("Transaction Successfull")
-//   };
-//
-//
-//   return (
-//     <div className="p-4 bg-gray-50 min-h-screen font-sans flex flex-col">
-//       {/* Header */}
-//       <header className="flex items-center justify-between mb-4">
-//         <Button variant="ghost" className="h-10 w-10 p-0" onClick={handleGoBack}>
-//           <ChevronLeft className="h-6 w-6 text-gray-800" />
-//         </Button>
-//         <h1 className="text-xl font-bold text-gray-800">Shopping Cart</h1>
-//         <Button variant="ghost" className="h-10 w-10 p-0" onClick={clearCart}>
-//           <Trash2 className="h-6 w-6 text-gray-500 hover:text-red-500" />
-//         </Button>
-//       </header>
-//
-//       {/* Cart Items List */}
-//       <main className="flex-grow">
-//         {items.length > 0 ? (
-//           items.map(item => (
-//             <CartItem key={item.id} item={item} />
-//           ))
-//         ) : (
-//           <div className="text-center text-gray-500 mt-20">Your cart is empty.</div>
-//         )}
-//       </main>
-//
-//       {/* Footer / Summary */}
-//       {items.length > 0 && (
-//         <footer className="bg-white p-4 rounded-lg shadow-sm mt-4">
-//           <div className="flex justify-between items-center text-gray-700 font-medium text-sm">
-//             <span>Total {getTotalItems()} Items</span>
-//             <span className="text-xl font-bold text-gray-800">₦{getTotalPrice().toFixed(2)}</span>
-//           </div>
-//    <FlutterwaveInlineButton
-//         amount={getTotalPrice().toFixed(2)}
-//         email={email}
-//         name={name}
-//         onSuccess={handleSuccess}
-//         onClose={() => console.log('Checkout closed')}
-//       />
-//
-//         </footer>
-//       )}
-//     </div>
-//   );
-// };
-//
-// export default App;
+  // Sync with localStorage on mount (client-side only)
+  useEffect(() => {
+    try {
+      const v = localStorage.getItem('mf-solar-dark-mode')
+      if (v !== null) {
+        setIsDark(v === 'true')
+      }
+    } catch {
+      // Keep default
+    }
+  }, [])
+
+  // Apply theme
+  useEffect(() => {
+    if (isDark) document.documentElement.classList.add('dark')
+    else document.documentElement.classList.remove('dark')
+  }, [isDark])
+
+  const calculateTotal = () =>
+    cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0)
+
+  const handleCheckout = () => {
+    alert('Thank you — your order has been placed.')
+    clearCart()
+    router.push('/')
+  }
+
+  const updateQuantity = (productId: number, newQuantity: number) => {
+    if (newQuantity <= 0) {
+      removeFromCart(productId)
+    } else {
+      const item = cartItems.find((i) => i.id === productId)
+      if (item) {
+        const diff = newQuantity - item.quantity
+        if (diff > 0) {
+          // Add more
+          for (let i = 0; i < diff; i++) {
+            addToCart(item)
+          }
+        } else {
+          // Remove some (not implemented in store, so we'll just remove and re-add)
+          removeFromCart(productId)
+          for (let i = 0; i < newQuantity; i++) {
+            addToCart(item)
+          }
+        }
+      }
+    }
+  }
+
+  return (
+    <div className={`min-h-screen font-sans ${isDark ? 'bg-gray-950 text-white' : 'bg-white text-gray-900'}`}>
+      <Navbar isDark={isDark} setIsDark={setIsDark} showCategoryNav={true} />
+
+      {/* Main Content */}
+      <main className="container mx-auto px-4 md:px-8 py-8 md:py-12">
+        {/* Back Button */}
+        <button
+          onClick={() => router.push('/')}
+          className={`flex items-center space-x-2 mb-6 px-4 py-2 rounded-md transition-colors ${isDark ? 'text-white hover:bg-gray-800' : 'text-gray-900 hover:bg-gray-100'}`}
+        >
+          <ArrowLeft size={20} />
+          <span className="text-sm font-semibold">Back to Home</span>
+        </button>
+
+        <h1 className={`text-3xl md:text-4xl font-heading font-bold mb-8 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+          Your Shopping Cart
+        </h1>
+
+        {cartItems.length === 0 ? (
+          <div className={`${isDark ? 'border-gray-700 text-gray-400' : 'border-gray-200 text-gray-700'} text-center p-8 border rounded-xl`}>
+            <ShoppingCart size={64} className="mx-auto mb-4 opacity-50" />
+            <p className="text-lg mb-4">Your cart is empty. Start shopping now!</p>
+            <button
+              onClick={() => router.push('/')}
+              className="px-6 py-3 text-lg font-semibold text-gray-900 bg-yellow-400 rounded-md shadow-lg hover:bg-yellow-500"
+            >
+              Go to Products
+            </button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Cart Items */}
+            <div className="lg:col-span-2 space-y-4">
+              {cartItems.map((item) => (
+                <div
+                  key={item.id}
+                  className={`${isDark ? 'bg-gray-900 border-gray-800 text-white' : 'bg-yellow-50 border-gray-300 text-gray-900 shadow-md'} flex items-center space-x-4 p-4 rounded-xl border`}
+                >
+                  <div className="w-24 h-24 flex items-center justify-center bg-gray-100 dark:bg-gray-800 rounded-md flex-shrink-0">
+                    <Image
+                      src={item.imageUrl}
+                      alt={item.name}
+                      width={96}
+                      height={96}
+                      className="object-contain rounded-md w-full h-full"
+                    />
+                  </div>
+                  <div className="flex-grow">
+                    <h3 className="text-lg font-heading font-semibold mb-1">{item.name}</h3>
+                    <p className={`text-lg font-bold mb-2 ${isDark ? 'text-green-400' : 'text-green-600'}`}>
+                      ₦{item.price.toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </p>
+                    <div className="flex items-center space-x-3">
+                      <button
+                        onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                        className={`${isDark ? 'bg-gray-800 hover:bg-gray-700' : 'bg-gray-200 hover:bg-gray-300'} w-8 h-8 rounded-md flex items-center justify-center transition-colors`}
+                      >
+                        <Minus size={16} />
+                      </button>
+                      <span className="text-lg font-semibold w-8 text-center">{item.quantity}</span>
+                      <button
+                        onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                        className={`${isDark ? 'bg-gray-800 hover:bg-gray-700' : 'bg-gray-200 hover:bg-gray-300'} w-8 h-8 rounded-md flex items-center justify-center transition-colors`}
+                      >
+                        <Plus size={16} />
+                      </button>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => removeFromCart(item.id)}
+                    className="text-red-500 hover:text-red-400 p-2"
+                  >
+                    <Trash2 size={20} />
+                  </button>
+                </div>
+              ))}
+            </div>
+
+            {/* Order Summary */}
+            <div className="lg:col-span-1">
+              <div className={`${isDark ? 'bg-gray-900 border-gray-800' : 'bg-yellow-50 border-gray-300 shadow-md'} p-6 rounded-xl border sticky top-24`}>
+                <h2 className="text-2xl font-heading font-bold mb-4">Order Summary</h2>
+                
+                <div className="space-y-3 mb-6">
+                  <div className="flex justify-between">
+                    <span className={isDark ? 'text-gray-400' : 'text-gray-600'}>Items ({cartItems.length})</span>
+                    <span className="font-semibold">
+                      ₦{calculateTotal().toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className={isDark ? 'text-gray-400' : 'text-gray-600'}>Shipping</span>
+                    <span className="font-semibold text-green-500">Free</span>
+                  </div>
+                  <div className={`border-t ${isDark ? 'border-gray-700' : 'border-gray-300'} pt-3 mt-3`}>
+                    <div className="flex justify-between text-xl font-bold">
+                      <span>Total</span>
+                      <span className={isDark ? 'text-green-400' : 'text-green-600'}>
+                        ₦{calculateTotal().toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <button
+                  onClick={handleCheckout}
+                  className="w-full py-3 bg-emerald-600 text-white rounded-md shadow-lg hover:bg-emerald-700 font-semibold text-lg mb-3"
+                >
+                  Proceed to Checkout
+                </button>
+
+                <button
+                  onClick={clearCart}
+                  className={`w-full py-2 ${isDark ? 'bg-gray-800 hover:bg-gray-700' : 'bg-gray-200 hover:bg-gray-300'} rounded-md font-semibold transition-colors`}
+                >
+                  Clear Cart
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </main>
+
+      <Footer isDark={isDark} />
+    </div>
+  )
+}
