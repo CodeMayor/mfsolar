@@ -116,7 +116,7 @@ export default function ProductDetailsPage(): React.ReactElement {
             Home
           </button>
           <span>/</span>
-          <button onClick={() => router.push(`/products?category=${product.category}`)} className="hover:text-yellow-400 transition-colors capitalize">
+          <button onClick={() => router.push(`/?category=${product.category}`)} className="hover:text-yellow-400 transition-colors capitalize">
             {product.category.replace('-', ' ')}
           </button>
           <span>/</span>
@@ -129,14 +129,14 @@ export default function ProductDetailsPage(): React.ReactElement {
           <div>
             <div
               className={`${isDark ? 'bg-gray-900 border-gray-800' : 'bg-gray-100 border-gray-200'} rounded-2xl border p-4 md:p-8 flex items-center justify-center`}
-              style={{ minHeight: '500px' }}
+              style={{ minHeight: '350px' }}
             >
               <Image
                 src={product.imageUrl}
                 alt={product.name}
                 width={700}
-                height={500}
-                className="object-contain rounded-lg w-full h-full max-h-[600px]"
+                height={350}
+                className="object-contain rounded-lg w-full h-full max-h-[400px]"
                 priority
               />
             </div>

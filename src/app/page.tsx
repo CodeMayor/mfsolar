@@ -5,7 +5,7 @@ import React, { useEffect, useState } from 'react'
 import type { StoreState } from '@/store/useStore'
 import useStore from '@/store/useStore'
 import Image from 'next/image'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import AdminPage from '@/components/AdminPage'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
@@ -19,9 +19,10 @@ type PageKey =
   | 'streetlights'
   | 'charge-controllers'
 
-export default function Page(): React.ReactElement {
+function StoreContent(): React.ReactElement {
   // Router
   const router = useRouter()
+  const searchParams = useSearchParams()
   
   // Router-like local state
   const [currentPage, setCurrentPage] = useState<PageKey>('home')
@@ -40,6 +41,20 @@ export default function Page(): React.ReactElement {
       // Keep default
     }
   }, [])
+
+  // Handle URL params for category navigation
+  useEffect(() => {
+    const category = searchParams.get('category')
+    if (category) {
+      const validCategories: StoreState['selectedCategory'][] = [
+        'all', 'panels', 'batteries', 'inverters', 'generators', 'streetlights', 'charge-controllers'
+      ]
+      if (validCategories.includes(category as StoreState['selectedCategory'])) {
+        setSelectedCategory(category as StoreState['selectedCategory'])
+        setCurrentPage('products')
+      }
+    }
+  }, [searchParams])
 
   // Zustand store (unchanged)
   const {
@@ -402,3 +417,11 @@ export default function Page(): React.ReactElement {
     </div>
   )
 }
+
+export default function Page() {
+  return (
+    <React.Suspense fallback={<div className="min-h-screen bg-gray-950 flex items-center justify-center text-white">Loading Store...</div>}>
+      <StoreContent />
+    </React.Suspense>
+  )
+}
