@@ -5,6 +5,8 @@ import { useParams, useRouter } from 'next/navigation'
 import Image from 'next/image'
 import useStore from '@/store/useStore'
 import type { Product } from '@/store/useStore'
+import Navbar from '@/components/Navbar'
+import Footer from '@/components/Footer'
 import { ArrowLeft, ShoppingCart, Check, Star, Package, Shield, Truck } from 'lucide-react'
 
 export default function ProductDetailsPage(): React.ReactElement {
@@ -104,38 +106,7 @@ export default function ProductDetailsPage(): React.ReactElement {
 
   return (
     <div className={`min-h-screen font-sans ${isDark ? 'bg-gray-950 text-white' : 'bg-white text-gray-900'}`}>
-      {/* Header */}
-      <header
-        className={`${isDark ? 'bg-gray-950 text-white border-gray-800' : 'bg-white text-gray-900 border-gray-200'} sticky top-0 z-50 border-b backdrop-blur-md`}
-      >
-        <nav className="container mx-auto px-4 md:px-8 py-4 flex items-center justify-between">
-          {/* Logo - Always on the left */}
-          <div className="flex items-center space-x-2">
-            <button
-              onClick={() => router.push('/')}
-              className="focus:outline-none flex items-center space-x-2"
-            >
-              <span className="text-3xl">☀️</span>
-              <span className="text-2xl font-heading font-bold tracking-tight">Solar Store</span>
-            </button>
-          </div>
-
-          {/* Right side - Cart only */}
-          <div className="flex items-center space-x-4">
-            <button
-              onClick={() => router.push('/cart')}
-              className={`relative px-3 py-2 rounded-md transition-colors ${isDark ? 'hover:bg-yellow-400 hover:text-gray-900 text-white' : 'hover:bg-yellow-400 hover:text-gray-900 text-gray-900'}`}
-            >
-              <ShoppingCart />
-              {cartItems.length > 0 && (
-                <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-yellow-400 text-[10px] text-gray-900 font-bold">
-                  {cartItems.length}
-                </span>
-              )}
-            </button>
-          </div>
-        </nav>
-      </header>
+      <Navbar isDark={isDark} setIsDark={setIsDark} showCategoryNav={true} />
 
       {/* Main Content */}
       <main className="container mx-auto px-4 md:px-8 py-8 md:py-12">
@@ -353,14 +324,7 @@ export default function ProductDetailsPage(): React.ReactElement {
         )}
       </main>
 
-      {/* Footer */}
-      <footer
-        className={`${isDark ? 'bg-gray-900 text-gray-300 border-gray-800' : 'bg-white text-gray-700 border-gray-200'} border-t py-8 px-4 md:px-8 mt-16`}
-      >
-        <div className="container mx-auto text-center">
-          <p className="text-sm">&copy; {new Date().getFullYear()} Solar Store. All rights reserved.</p>
-        </div>
-      </footer>
+      <Footer isDark={isDark} />
     </div>
   )
 }

@@ -4,7 +4,9 @@ import React, { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import useStore from '@/store/useStore'
-import { ArrowLeft, ShoppingCart, Trash2, Plus, Minus, Moon, Sun } from 'lucide-react'
+import Navbar from '@/components/Navbar'
+import Footer from '@/components/Footer'
+import { ArrowLeft, ShoppingCart, Trash2, Plus, Minus } from 'lucide-react'
 
 export default function CartPage(): React.ReactElement {
   const router = useRouter()
@@ -63,30 +65,7 @@ export default function CartPage(): React.ReactElement {
 
   return (
     <div className={`min-h-screen font-sans ${isDark ? 'bg-gray-950 text-white' : 'bg-white text-gray-900'}`}>
-      {/* Header */}
-      <header
-        className={`${isDark ? 'bg-gray-950 text-white border-gray-800' : 'bg-white text-gray-900 border-gray-200'} sticky top-0 z-50 border-b backdrop-blur-md`}
-      >
-        <nav className="container mx-auto px-4 md:px-8 py-4 flex items-center justify-between">
-          {/* Logo */}
-          <div className="flex items-center space-x-2">
-            <button
-              onClick={() => router.push('/')}
-              className="focus:outline-none flex items-center space-x-2"
-            >
-              <span className="text-3xl">☀️</span>
-              <span className="text-2xl font-heading font-bold tracking-tight">Solar Store</span>
-            </button>
-          </div>
-
-          {/* Right side - Theme toggle only */}
-          <div className="flex items-center space-x-4">
-            <button onClick={() => setIsDark(!isDark)} className="px-3 py-1 rounded-md border border-gray-600 hover:bg-gray-200 dark:hover:bg-gray-800">
-              {isDark ? <Moon /> : <Sun />}
-            </button>
-          </div>
-        </nav>
-      </header>
+      <Navbar isDark={isDark} setIsDark={setIsDark} showCategoryNav={true} />
 
       {/* Main Content */}
       <main className="container mx-auto px-4 md:px-8 py-8 md:py-12">
@@ -208,14 +187,7 @@ export default function CartPage(): React.ReactElement {
         )}
       </main>
 
-      {/* Footer */}
-      <footer
-        className={`${isDark ? 'bg-gray-900 text-gray-300 border-gray-800' : 'bg-white text-gray-700 border-gray-200'} border-t py-8 px-4 md:px-8 mt-16`}
-      >
-        <div className="container mx-auto text-center">
-          <p className="text-sm">&copy; {new Date().getFullYear()} Solar Store. All rights reserved.</p>
-        </div>
-      </footer>
+      <Footer isDark={isDark} />
     </div>
   )
 }
