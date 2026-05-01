@@ -102,7 +102,17 @@ const useStore = create<StoreState>()(
 
       // Actions for the admin panel (CRUD via secure server-side API)
       addProduct: async (newProduct: Omit<Product, 'id'>, imageFile?: File) => {
-        const { adminPassword } = get();
+        let { adminPassword } = get();
+        
+        // Fallback to sessionStorage if password is not in store
+        if (!adminPassword) {
+          try {
+            adminPassword = sessionStorage.getItem('mf-solar-admin-auth') || '';
+          } catch {
+            adminPassword = '';
+          }
+        }
+        
         try {
           let imageBase64: string | undefined;
           let imageExtension: string | undefined;
@@ -157,7 +167,17 @@ const useStore = create<StoreState>()(
       },
 
       updateProduct: async (updatedProduct: Product, imageFile?: File) => {
-        const { adminPassword } = get();
+        let { adminPassword } = get();
+        
+        // Fallback to sessionStorage if password is not in store
+        if (!adminPassword) {
+          try {
+            adminPassword = sessionStorage.getItem('mf-solar-admin-auth') || '';
+          } catch {
+            adminPassword = '';
+          }
+        }
+        
         try {
           let imageBase64: string | undefined;
           let imageExtension: string | undefined;
@@ -210,7 +230,17 @@ const useStore = create<StoreState>()(
       },
 
       deleteProduct: async (productId: number) => {
-        const { adminPassword } = get();
+        let { adminPassword } = get();
+        
+        // Fallback to sessionStorage if password is not in store
+        if (!adminPassword) {
+          try {
+            adminPassword = sessionStorage.getItem('mf-solar-admin-auth') || '';
+          } catch {
+            adminPassword = '';
+          }
+        }
+        
         try {
           const res = await fetch('/api/admin/products', {
             method: 'DELETE',

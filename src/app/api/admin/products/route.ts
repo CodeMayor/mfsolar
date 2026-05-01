@@ -18,6 +18,14 @@ function checkPassword(req: NextRequest): boolean {
   return password === process.env.ADMIN_PASSWORD;
 }
 
+// ─── VERIFY PASSWORD (GET) ────────────────────────────────────────────────────
+export async function GET(req: NextRequest) {
+  if (!checkPassword(req)) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+  return NextResponse.json({ success: true });
+}
+
 // ─── ADD PRODUCT ─────────────────────────────────────────────────────────────
 export async function POST(req: NextRequest) {
   if (!checkPassword(req)) {
