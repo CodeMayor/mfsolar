@@ -31,6 +31,12 @@ export const metadata: Metadata = {
   description: "An E-Commerce site by MfSolar",
   manifest: '/manifest.json', // Link to your manifest.json
   themeColor: '#0d9488', // Your theme color
+  viewport: {
+    width: 'device-width',
+    initialScale: 1,
+    maximumScale: 5,
+    userScalable: true,
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
